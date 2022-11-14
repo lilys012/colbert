@@ -17,13 +17,18 @@ def main(args):
     qid2positives = defaultdict(list)
     qid2ranking = defaultdict(list)
     qid2mrr = {}
-    qid2recall = {depth: {} for depth in [50, 200, 1000, 5000, 10000]}
+    qid2recall = {depth: {} for depth in [1, 3, 5, 10, 100, 1000]}
 
     with open(args.qrels) as f:
         print_message(f"#> Loading QRELs from {args.qrels} ..")
         for line in file_tqdm(f):
             qid, _, pid, label = map(int, line.strip().split())
-            assert label == 1
+            #assert label == 1
+            assert label >= 0
+            if label == 0:
+                continue
+            elif label > 1:
+                label = 1
 
             qid2positives[qid].append(pid)
 
@@ -41,6 +46,9 @@ def main(args):
 
             qid2ranking[qid].append((rank, pid, score))
 
+    print(len(set(qid2positives.keys())))
+    print(set(qid2ranking.keys()).difference(set(qid2positives.keys())))
+    print(set(qid2positives.keys()).difference(set(qid2ranking.keys())))
     assert set.issubset(set(qid2ranking.keys()), set(qid2positives.keys()))
 
     num_judged_queries = len(qid2positives)
